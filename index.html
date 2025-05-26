@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Asystent operacji zaćmy - VoiceBot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #00677f;
+      color: white;
+      display: flex;
+      height: 100vh;
+    }
+    .left-panel {
+      width: 60%;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: linear-gradient(to bottom right, #00677f, #007e91);
+    }
+    .left-panel h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    .left-panel p {
+      font-size: 1.2em;
+      margin-bottom: 30px;
+    }
+    .left-panel button {
+      background: transparent;
+      border: 2px solid white;
+      color: white;
+      font-size: 1em;
+      padding: 12px 20px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .right-panel {
+      width: 40%;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      color: black;
+    }
+    .input-box {
+      display: flex;
+      border-top: 1px solid #ccc;
+      padding: 10px;
+    }
+    .input-box input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      font-size: 1em;
+    }
+    .input-box button {
+      padding: 10px 15px;
+      font-size: 1em;
+      background: #00677f;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .transcribing {
+      font-style: italic;
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #ffe;
+    }
+  </style>
+</head>
+<body>
+  <div class="left-panel">
+    <h1>Asystent operacji zaćmy</h1>
+    <p>Oto kilka spraw, w których bot może Ci pomóc:</p>
+    <button onclick="sendQuickMessage('Czy operacja jest bezpieczna?')">Czy operacja jest bezpieczna?</button>
+    <button onclick="sendQuickMessage('Czy można mrugać?')">Czy można mrugać?</button>
+    <button onclick="sendQuickMessage('Jak wybrać soczewkę?')">Jak wybrać soczewkę?</button>
+    <button onclick="sendQuickMessage('Zbierz dane osobowe pacjenta')">Zbierz dane osobowe pacjenta</button>
+    <button onclick="sendQuickMessage('Przygotuj deklarację pacjenta')">Przygotuj deklarację pacjenta</button>
+    <button onclick="sendQuickMessage('Zacznij od nowa')">Zacznij od nowa</button>
+    <button id="recordBtn">🎙ï¸ Rozpocznij nagrywanie</button>
+    <div id="status" class="transcribing"></div>
+  </div>
+  <div class="right-panel">
+    <div id="chat" class="chat-box">
+      <p><strong>Bot:</strong> Witaj, jestem wirtualnym asystentem operacji zaćmy. Jestem tu, aby przedstawić Ci procedurę operacji, zebrać wymagane dane osobowe oraz Twoją zgodę, a także rozwiać wszystkie Twoje wątpliwości związane z zabiegiem.</p>
+      <p><strong>Bot:</strong> W czym mogę pomóc?</p>
+    </div>
+    <div class="input-box">
+      <input id="input" type="text" placeholder="Wpisz wiadomość">
+      <button onclick="sendMessage()">Wyślij</button>
+    </div>
+  </div>
+
+  <script>
+    const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY";
+    const WHISPER_API_URL = "https://api.openai.com/v1/audio/transcriptions";
+    const recordBtn = document.getElementById("recordBtn");
+    const status = document.getElementById("status");
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+
+    let isRecording = false;
+    let mediaRecorder;
+    let audioChunks = [];
+
+    recordBtn.onclick = async () => {
+      if (!isRecording) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+        mediaRecorder.onstop = handleAudio;
+        mediaRecorder.start();
+        recordBtn.textContent = "⏹ï¸ Zatrzymaj nagrywanie";
+        status.textContent = "Nagrywanie... Mów teraz.";
+        isRecording = true;
+      } else {
+        mediaRecorder.stop();
+        recordBtn.textContent = "🎙ï¸ Rozpocznij nagrywanie";
+        status.textContent = "Transkrypcja...";
+        isRecording = false;
+      }
+    };
+
+    async function handleAudio() {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const formData = new FormData();
+      formData.append("file", audioBlob, "speech.webm");
+      formData.append("model", "whisper-1");
+
+      const response = await fetch(WHISPER_API_URL, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${OPENAI_API_KEY}` },
+        body: formData
+      });
+      const data = await response.json();
+      const transcript = data.text;
+      status.textContent = "";
+      addMessage("Ty", transcript);
+      sendToBot(transcript);
+    }
+
+    function addMessage(sender, text) {
+      const p = document.createElement("p");
+      p.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      chat.appendChild(p);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function sendMessage() {
+      const text = input.value;
+      if (text.trim() === "") return;
+      addMessage("Ty", text);
+      input.value = "";
+      sendToBot(text);
+    }
+
+    function sendQuickMessage(text) {
+      addMessage("Ty", text);
+      sendToBot(text);
+    }
+
+    function sendToBot(text) {
+      // Placeholder for Direct Line call
+      setTimeout(() => addMessage("Bot", `Odpowiedź na: "${text}" (symulowana)`), 1500);
+    }
+  </script>
+</body>
+</html>
