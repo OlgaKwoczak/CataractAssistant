@@ -2,179 +2,200 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Asystent operacji zaćmy - VoiceBot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asystent operacji zaćmy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: #00677f;
+      background: linear-gradient(120deg, #035d75, #0e6d82);
       color: white;
       display: flex;
       height: 100vh;
     }
-    .left-panel {
-      width: 60%;
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      background: linear-gradient(to bottom right, #00677f, #007e91);
+
+    .sidebar {
+      flex: 1;
+      padding: 2rem;
     }
-    .left-panel h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
+
+    .sidebar h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
     }
-    .left-panel p {
-      font-size: 1.2em;
-      margin-bottom: 30px;
+
+    .sidebar p {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
     }
-    .left-panel button {
-      background: transparent;
+
+    .sidebar button {
+      display: block;
+      width: 100%;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background-color: transparent;
       border: 2px solid white;
+      border-radius: 8px;
       color: white;
-      font-size: 1em;
-      padding: 12px 20px;
-      margin-bottom: 12px;
-      border-radius: 6px;
+      font-size: 1.25rem;
       cursor: pointer;
-      text-align: left;
     }
-    .right-panel {
-      width: 40%;
-      background: white;
+
+    .chat-container {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-    }
-    .chat-box {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
+      background-color: white;
       color: black;
+      border-top-left-radius: 16px;
+      border-bottom-left-radius: 16px;
+      overflow: hidden;
     }
-    .input-box {
-      display: flex;
-      border-top: 1px solid #ccc;
-      padding: 10px;
-    }
-    .input-box input {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      font-size: 1em;
-    }
-    .input-box button {
-      padding: 10px 15px;
-      font-size: 1em;
-      background: #00677f;
+
+    .chat-header {
+      background-color: #0e6d82;
       color: white;
-      border: none;
-      cursor: pointer;
+      padding: 1rem;
+      font-weight: bold;
     }
-    .transcribing {
-      font-style: italic;
-      margin-top: 10px;
-      font-size: 0.9em;
-      color: #ffe;
+
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .chat-input {
+      display: flex;
+      align-items: center;
+      border-top: 1px solid #ccc;
+      padding: 1rem;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .chat-input button {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      margin-left: 0.75rem;
+      cursor: pointer;
+      color: #0e6d82;
+    }
+
+    .recording {
+      animation: pulse 1.2s infinite;
+      color: red;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
     }
   </style>
 </head>
 <body>
-  <div class="left-panel">
+  <div class="sidebar">
     <h1>Asystent operacji zaćmy</h1>
     <p>Oto kilka spraw, w których bot może Ci pomóc:</p>
-    <button onclick="sendQuickMessage('Czy operacja jest bezpieczna?')">Czy operacja jest bezpieczna?</button>
-    <button onclick="sendQuickMessage('Czy można mrugać?')">Czy można mrugać?</button>
-    <button onclick="sendQuickMessage('Jak wybrać soczewkę?')">Jak wybrać soczewkę?</button>
-    <button onclick="sendQuickMessage('Zbierz dane osobowe pacjenta')">Zbierz dane osobowe pacjenta</button>
-    <button onclick="sendQuickMessage('Przygotuj deklarację pacjenta')">Przygotuj deklarację pacjenta</button>
-    <button onclick="sendQuickMessage('Zacznij od nowa')">Zacznij od nowa</button>
-    <button id="recordBtn">🎙ï¸ Rozpocznij nagrywanie</button>
-    <div id="status" class="transcribing"></div>
+    <button>Czy operacja jest bezpieczna?</button>
+    <button>Czy można mrugać?</button>
+    <button>Jak wybrać soczewkę?</button>
+    <button>Zbierz dane osobowe pacjenta</button>
+    <button>Przygotuj deklarację pacjenta</button>
+    <button>Zacznij od nowa</button>
   </div>
-  <div class="right-panel">
-    <div id="chat" class="chat-box">
-      <p><strong>Bot:</strong> Witaj, jestem wirtualnym asystentem operacji zaćmy. Jestem tu, aby przedstawić Ci procedurę operacji, zebrać wymagane dane osobowe oraz Twoją zgodę, a także rozwiać wszystkie Twoje wątpliwości związane z zabiegiem.</p>
-      <p><strong>Bot:</strong> W czym mogę pomóc?</p>
+  <div class="chat-container">
+    <div class="chat-header">Cataract Surgery Assistant</div>
+    <div class="chat-messages" id="chat-messages">
+      <div><strong>👁️</strong> Witaj, jestem wirtualnym asystentem operacji zaćmy. Jestem tu, aby przedstawić Ci procedurę operacji, zebrać wymagane dane osobowe oraz Twoją zgodę, a także rozwiać wszystkie Twoje wątpliwości związane z zabiegiem.</div>
     </div>
-    <div class="input-box">
-      <input id="input" type="text" placeholder="Wpisz wiadomość">
-      <button onclick="sendMessage()">Wyślij</button>
+    <div class="chat-input">
+      <input type="text" placeholder="Wpisz wiadomość" id="user-input" />
+      <button id="mic-button">🎤</button>
+      <button id="send-button">➤</button>
     </div>
   </div>
 
   <script>
-    const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY";
-    const WHISPER_API_URL = "https://api.openai.com/v1/audio/transcriptions";
-    const recordBtn = document.getElementById("recordBtn");
-    const status = document.getElementById("status");
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("input");
+    const sendBtn = document.getElementById('send-button');
+    const micBtn = document.getElementById('mic-button');
+    const chatMessages = document.getElementById('chat-messages');
+    const userInput = document.getElementById('user-input');
 
     let isRecording = false;
     let mediaRecorder;
     let audioChunks = [];
+    let stopTimeout;
 
-    recordBtn.onclick = async () => {
-      if (!isRecording) {
+    sendBtn.addEventListener('click', () => {
+      const msg = userInput.value;
+      if (!msg.trim()) return;
+      addMessage('🧑', msg);
+      userInput.value = '';
+      setTimeout(() => addMessage('🤖', 'Dziękuję za pytanie!'), 1000);
+    });
+
+    function addMessage(sender, msg) {
+      const div = document.createElement('div');
+      div.innerHTML = `<strong>${sender}</strong> ${msg}`;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    micBtn.addEventListener('click', async () => {
+      if (isRecording) {
+        stopRecording();
+      } else {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
+
         audioChunks = [];
-        mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-        mediaRecorder.onstop = handleAudio;
+        mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const formData = new FormData();
+          formData.append('file', audioBlob);
+
+          addMessage('🎙️', 'Przesyłam nagranie...');
+
+          const response = await fetch('https://your-proxy-url/transcribe', {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+          if (data.text) {
+            addMessage('🧑', data.text);
+            setTimeout(() => addMessage('🤖', 'Dziękuję za Twoją wypowiedź!'), 1000);
+          } else {
+            addMessage('⚠️', 'Transkrypcja nie powiodła się.');
+          }
+        };
+
         mediaRecorder.start();
-        recordBtn.textContent = "⏹ï¸ Zatrzymaj nagrywanie";
-        status.textContent = "Nagrywanie... Mów teraz.";
         isRecording = true;
-      } else {
-        mediaRecorder.stop();
-        recordBtn.textContent = "🎙ï¸ Rozpocznij nagrywanie";
-        status.textContent = "Transkrypcja...";
-        isRecording = false;
+        micBtn.classList.add('recording');
+        stopTimeout = setTimeout(stopRecording, 60000); // auto-stop after 1 minute
       }
-    };
+    });
 
-    async function handleAudio() {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      const formData = new FormData();
-      formData.append("file", audioBlob, "speech.webm");
-      formData.append("model", "whisper-1");
-
-      const response = await fetch(WHISPER_API_URL, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${OPENAI_API_KEY}` },
-        body: formData
-      });
-      const data = await response.json();
-      const transcript = data.text;
-      status.textContent = "";
-      addMessage("Ty", transcript);
-      sendToBot(transcript);
-    }
-
-    function addMessage(sender, text) {
-      const p = document.createElement("p");
-      p.innerHTML = `<strong>${sender}:</strong> ${text}`;
-      chat.appendChild(p);
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    function sendMessage() {
-      const text = input.value;
-      if (text.trim() === "") return;
-      addMessage("Ty", text);
-      input.value = "";
-      sendToBot(text);
-    }
-
-    function sendQuickMessage(text) {
-      addMessage("Ty", text);
-      sendToBot(text);
-    }
-
-    function sendToBot(text) {
-      // Placeholder for Direct Line call
-      setTimeout(() => addMessage("Bot", `Odpowiedź na: "${text}" (symulowana)`), 1500);
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        clearTimeout(stopTimeout);
+      }
     }
   </script>
 </body>
