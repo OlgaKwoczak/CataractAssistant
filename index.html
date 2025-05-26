@@ -107,12 +107,12 @@
   <div class="sidebar">
     <h1>Asystent operacji zaćmy</h1>
     <p>Oto kilka spraw, w których bot może Ci pomóc:</p>
-    <button>Czy operacja jest bezpieczna?</button>
-    <button>Czy można mrugać?</button>
-    <button>Jak wybrać soczewkę?</button>
-    <button>Zbierz dane osobowe pacjenta</button>
-    <button>Przygotuj deklarację pacjenta</button>
-    <button>Zacznij od nowa</button>
+    <button onclick="simulateBot('Czy operacja jest bezpieczna?')">Czy operacja jest bezpieczna?</button>
+    <button onclick="simulateBot('Czy można mrugać?')">Czy można mrugać?</button>
+    <button onclick="simulateBot('Jak wybrać soczewkę?')">Jak wybrać soczewkę?</button>
+    <button onclick="simulateBot('Zbierz dane osobowe pacjenta')">Zbierz dane osobowe pacjenta</button>
+    <button onclick="simulateBot('Przygotuj deklarację pacjenta')">Przygotuj deklarację pacjenta</button>
+    <button onclick="simulateBot('Zacznij od nowa')">Zacznij od nowa</button>
   </div>
   <div class="chat-container">
     <div class="chat-header">Cataract Surgery Assistant</div>
@@ -150,6 +150,11 @@
       div.innerHTML = `<strong>${sender}</strong> ${msg}`;
       chatMessages.appendChild(div);
       chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function simulateBot(text) {
+      addMessage('🧑', text);
+      setTimeout(() => addMessage('🤖', `To jest przykładowa odpowiedź na: "${text}"`), 1000);
     }
 
     micBtn.addEventListener('click', async () => {
